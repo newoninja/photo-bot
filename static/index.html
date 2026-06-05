@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Bot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #222;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #252525;
+        }
+
+        .tab.active {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+        }
+
+        .sidebar {
+            background: #111;
+            border-radius: 12px;
+            padding: 20px;
+            height: fit-content;
+        }
+
+        .sidebar h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .character-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .character-item {
+            padding: 12px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .character-item:hover {
+            background: #222;
+        }
+
+        .character-item.selected {
+            border-color: #2563eb;
+            background: #1a1a2e;
+        }
+
+        .character-item .name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .character-item .desc {
+            font-size: 12px;
+            color: #666;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #333;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #444;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .generation-panel {
+            background: #111;
+            border-radius: 12px;
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #888;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .output-area {
+            margin-top: 30px;
+            padding: 20px;
+            background: #0a0a0a;
+            border-radius: 12px;
+            min-height: 200px;
+        }
+
+        .output-area h3 {
+            margin-bottom: 15px;
+            color: #888;
+        }
+
+        .output-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .output-item {
+            border-radius: 8px;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+
+        .output-item img, .output-item video {
+            width: 100%;
+            display: block;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #111;
+            border-radius: 12px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+        }
+
+        .error {
+            background: #2d1b1b;
+            border: 1px solid #dc2626;
+            color: #f87171;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #1b2d1b;
+            border: 1px solid #22c55e;
+            color: #86efac;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .traits-input {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .trait-tag {
+            background: #2563eb;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .trait-tag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .no-selection {
+            color: #666;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Photo Bot</h1>
+            <div class="tabs">
+                <div class="tab active" data-tab="image">Image</div>
+                <div class="tab" data-tab="video">Video</div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <h2>Characters</h2>
+                <div id="character-list" class="character-list">
+                    <div class="loading"><div class="spinner"></div></div>
+                </div>
+                <button class="btn btn-primary" onclick="openCharacterModal()">+ New Character</button>
+                <div id="character-actions" class="hidden" style="margin-top: 10px;">
+                    <button class="btn btn-secondary" onclick="editSelectedCharacter()">Edit</button>
+                    <button class="btn btn-danger" style="margin-top: 8px;" onclick="deleteSelectedCharacter()">Delete</button>
+                </div>
+            </aside>
+
+            <main>
+                <!-- Image Generation Panel -->
+                <div id="image-panel" class="generation-panel panel active">
+                    <h2 style="margin-bottom: 20px;">Generate Image</h2>
+                    <div id="image-error" class="error hidden"></div>
+
+                    <div class="form-group">
+                        <label>Prompt</label>
+                        <textarea id="image-prompt" placeholder="Describe the image you want to generate..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Model</label>
+                            <select id="image-model">
+                                <option value="nanobanana">NanoBanana (Google Gemini)</option>
+                                <option value="grok">Grok Aurora (xAI)</option>
+                                <option value="flux-pro-ultra">Flux Pro Ultra (Photorealistic)</option>
+                                <option value="flux-pro">Flux Pro (Photorealistic)</option>
+                                <option value="flux-dev">Flux Dev (Good Quality)</option>
+                                <option value="flux-schnell">Flux Schnell (Fast)</option>
+                                <option value="sdxl">SDXL (Stable Diffusion XL)</option>
+                                <option value="juggernaut-xl">Juggernaut XL (Stylized)</option>
+                                <option value="realvisxl">RealVisXL v4 (Stylized)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Size</label>
+                            <select id="image-size">
+                                <option value="1024x1024">1024x1024</option>
+                                <option value="1024x768">1024x768</option>
+                                <option value="768x1024">768x1024</option>
+                                <option value="512x512">512x512</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Count</label>
+                            <select id="image-count">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="4">4</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Negative Prompt (optional)</label>
+                        <input type="text" id="image-negative" placeholder="What to avoid...">
+                    </div>
+
+                    <button id="generate-image-btn" class="btn btn-primary" onclick="generateImage()">Generate Image</button>
+
+                    <div class="output-area">
+                        <h3>Generated Images</h3>
+                        <div id="image-output" class="output-grid">
+                            <div class="no-selection">Your generated images will appear here</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Generation Panel -->
+                <div id="video-panel" class="generation-panel panel">
+                    <h2 style="margin-bottom: 20px;">Generate Video</h2>
+                    <div id="video-error" class="error hidden"></div>
+
+                    <div class="form-group">
+                        <label>Source Image</label>
+                        <select id="video-source">
+                            <option value="">Select an image from outputs...</option>
+                        </select>
+                        <p style="font-size: 12px; color: #666; margin-top: 8px;">Generate an image first, then use it to create a video</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Motion Prompt (optional)</label>
+                        <input type="text" id="video-prompt" placeholder="Describe the motion...">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Model</label>
+                            <select id="video-model">
+                                <option value="svd">Stable Video Diffusion</option>
+                                <option value="animate">Animate Diff</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>FPS</label>
+                            <select id="video-fps">
+                                <option value="6">6</option>
+                                <option value="12">12</option>
+                                <option value="24">24</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="generate-video-btn" class="btn btn-primary" onclick="generateVideo()">Generate Video</button>
+
+                    <div class="output-area">
+                        <h3>Generated Videos</h3>
+                        <div id="video-output" class="output-grid">
+                            <div class="no-selection">Your generated videos will appear here</div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Character Modal -->
+    <div id="character-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">New Character</h2>
+            <div id="modal-error" class="error hidden"></div>
+
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="char-name" placeholder="Character name">
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="char-description" placeholder="Physical description of the character..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Traits</label>
+                <input type="text" id="char-trait-input" placeholder="Type a trait and press Enter">
+                <div id="char-traits" class="traits-input"></div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeCharacterModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveCharacter()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let selectedCharacter = null;
+        let editingCharacter = null;
+        let characterTraits = [];
+        let generatedImages = [];
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-panel`).classList.add('active');
+            });
+        });
+
+        // Load characters on start
+        async function loadCharacters() {
+            try {
+                const res = await fetch(`${API_BASE}/api/characters`);
+                const characters = await res.json();
+
+                const list = document.getElementById('character-list');
+                if (characters.length === 0) {
+                    list.innerHTML = '<div class="no-selection">No characters yet</div>';
+                    return;
+                }
+
+                list.innerHTML = characters.map(char => `
+                    <div class="character-item ${selectedCharacter?.name === char.name ? 'selected' : ''}"
+                         onclick="selectCharacter('${char.name}')">
+                        <div class="name">${char.name}</div>
+                        <div class="desc">${char.description}</div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('Failed to load characters:', e);
+            }
+        }
+
+        function selectCharacter(name) {
+            if (selectedCharacter?.name === name) {
+                selectedCharacter = null;
+                document.getElementById('character-actions').classList.add('hidden');
+            } else {
+                fetch(`${API_BASE}/api/characters/${name}`)
+                    .then(r => r.json())
+                    .then(char => {
+                        selectedCharacter = char;
+                        document.getElementById('character-actions').classList.remove('hidden');
+                        loadCharacters();
+                    });
+            }
+            loadCharacters();
+        }
+
+        // Character Modal
+        function openCharacterModal(editing = null) {
+            editingCharacter = editing;
+            characterTraits = editing?.traits || [];
+
+            document.getElementById('modal-title').textContent = editing ? 'Edit Character' : 'New Character';
+            document.getElementById('char-name').value = editing?.name || '';
+            document.getElementById('char-name').disabled = !!editing;
+            document.getElementById('char-description').value = editing?.description || '';
+            document.getElementById('modal-error').classList.add('hidden');
+
+            renderTraits();
+            document.getElementById('character-modal').classList.add('active');
+        }
+
+        function closeCharacterModal() {
+            document.getElementById('character-modal').classList.remove('active');
+            editingCharacter = null;
+            characterTraits = [];
+        }
+
+        function renderTraits() {
+            const container = document.getElementById('char-traits');
+            container.innerHTML = characterTraits.map((trait, i) => `
+                <span class="trait-tag">
+                    ${trait}
+                    <button onclick="removeTrait(${i})">&times;</button>
+                </span>
+            `).join('');
+        }
+
+        function removeTrait(index) {
+            characterTraits.splice(index, 1);
+            renderTraits();
+        }
+
+        document.getElementById('char-trait-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = e.target.value.trim();
+                if (value && !characterTraits.includes(value)) {
+                    characterTraits.push(value);
+                    renderTraits();
+                }
+                e.target.value = '';
+            }
+        });
+
+        async function saveCharacter() {
+            const name = document.getElementById('char-name').value.trim();
+            const description = document.getElementById('char-description').value.trim();
+            const errorEl = document.getElementById('modal-error');
+
+            if (!name || !description) {
+                errorEl.textContent = 'Name and description are required';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const method = editingCharacter ? 'PUT' : 'POST';
+                const url = editingCharacter
+                    ? `${API_BASE}/api/characters/${name}`
+                    : `${API_BASE}/api/characters`;
+
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description, traits: characterTraits })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error);
+                }
+
+                closeCharacterModal();
+                loadCharacters();
+            } catch (e) {
+                errorEl.textContent = e.message;
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function editSelectedCharacter() {
+            if (selectedCharacter) {
+                openCharacterModal(selectedCharacter);
+            }
+        }
+
+        async function deleteSelectedCharacter() {
+            if (!selectedCharacter) return;
+            if (!confirm(`Delete character "${selectedCharacter.name}"?`)) return;
+
+            try {
+                await fetch(`${API_BASE}/api/characters/${selectedCharacter.name}`, {
+                    method: 'DELETE'
+                });
+                selectedCharacter = null;
+                document.getElementById('character-actions').classList.add('hidden');
+                loadCharacters();
+            } catch (e) {
+                alert('Failed to delete character');
+            }
+        }
+
+        // Image Generation
+        async function generateImage() {
+            const prompt = document.getElementById('image-prompt').value.trim();
+            const model = document.getElementById('image-model').value;
+            const [width, height] = document.getElementById('image-size').value.split('x').map(Number);
+            const count = parseInt(document.getElementById('image-count').value);
+            const negative = document.getElementById('image-negative').value.trim();
+
+            const errorEl = document.getElementById('image-error');
+            const btn = document.getElementById('generate-image-btn');
+            const output = document.getElementById('image-output');
+
+            if (!prompt) {
+                errorEl.textContent = 'Please enter a prompt';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            output.innerHTML = '<div class="loading"><div class="spinner"></div> Generating...</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/generate/image`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt,
+                        character: selectedCharacter?.name,
+                        model,
+                        width,
+                        height,
+                        count,
+                        negative
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                generatedImages = data.paths || [];
+                updateVideoSourceSelect();
+
+                output.innerHTML = data.images.map(url => `
+                    <div class="output-item">
+                        <img src="${url}" alt="Generated image" onclick="window.open('${url}', '_blank')">
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                errorEl.textContent = e.message;
+                errorEl.classList.remove('hidden');
+                output.innerHTML = '<div class="no-selection">Generation failed</div>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Image';
+            }
+        }
+
+        function updateVideoSourceSelect() {
+            const select = document.getElementById('video-source');
+            select.innerHTML = '<option value="">Select an image from outputs...</option>' +
+                generatedImages.map(path => `<option value="${path}">${path.split('/').pop()}</option>`).join('');
+        }
+
+        // Video Generation
+        async function generateVideo() {
+            const imagePath = document.getElementById('video-source').value;
+            const prompt = document.getElementById('video-prompt').value.trim();
+            const model = document.getElementById('video-model').value;
+            const fps = parseInt(document.getElementById('video-fps').value);
+
+            const errorEl = document.getElementById('video-error');
+            const btn = document.getElementById('generate-video-btn');
+            const output = document.getElementById('video-output');
+
+            if (!imagePath && model === 'svd') {
+                errorEl.textContent = 'Please select a source image for SVD model';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            output.innerHTML = '<div class="loading"><div class="spinner"></div> Generating video (this may take a while)...</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/generate/video`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt,
+                        image_path: imagePath,
+                        character: selectedCharacter?.name,
+                        model,
+                        fps
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                output.innerHTML = `
+                    <div class="output-item">
+                        <video controls autoplay loop>
+                            <source src="${data.video}" type="video/mp4">
+                        </video>
+                    </div>
+                `;
+
+            } catch (e) {
+                errorEl.textContent = e.message;
+                errorEl.classList.remove('hidden');
+                output.innerHTML = '<div class="no-selection">Generation failed</div>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Video';
+            }
+        }
+
+        // Initialize
+        loadCharacters();
+    </script>
+</body>
+</html>

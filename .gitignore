@@ -1,0 +1,32 @@
+# deps & build
+node_modules/
+.build/
+build/
+dist/
+Pods/
+DerivedData/
+*.xcuserstate
+__pycache__/
+*.pyc
+venv/
+.venv/
+# secrets & env
+.env
+.env.*
+*.env
+secrets.toml
+.streamlit/secrets.toml
+settings.local.json
+.claude/settings.local.json
+*serviceAccount*.json
+*service-account*.json
+*.p8
+GoogleService-Info.plist
+# data & output
+*.log
+logs/
+outputs/
+*.db
+*.sqlite
+# os
+.DS_Store
